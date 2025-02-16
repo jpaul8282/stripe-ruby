@@ -1,0 +1,65 @@
+netlify sites:create
+netlify functions:create --name get_movies
+npm install mongodb
+const { MongoClient } = require("mongodb");
+
+const mongoClient = new MongoClient(process.env.MONGODB_URI);
+
+const clientPromise = mongoClient.connect();
+
+const handler = async (event) => {
+    try {
+        const database = (await clientPromise).db(process.env.MONGODB_DATABASE);
+        const collection = database.collection(process.env.MONGODB_COLLECTION);
+        // Function logic here ...
+    } catch (error) {
+        return { statusCode: 500, body: error.toString() }
+    }
+}
+
+module.exports = { handler }
+const clientPromise = mongoClient.connect();
+const { MongoClient } = require("mongodb");
+
+const mongoClient = new MongoClient(process.env.MONGODB_URI);
+
+const clientPromise = mongoClient.connect();
+
+const handler = async (event) => {
+    try {
+        const database = (await clientPromise).db(process.env.MONGODB_DATABASE);
+        const collection = database.collection(process.env.MONGODB_COLLECTION);
+        const results = await collection.find({}).limit(10).toArray();
+        return {
+            statusCode: 200,
+            body: JSON.stringify(results),
+        }
+    } catch (error) {
+        return { statusCode: 500, body: error.toString() }
+    }
+}
+
+module.exports = { handler }
+<!DOCTYPE html>
+<html>
+    <head></head>
+    <body>
+        <h1>MongoDB with Netlify Functions</h1>
+        <ul id="movies"></ul>
+        <script>
+            (async () => {
+                let results = await fetch("/.netlify/functions/get_movies").then(response => response.json());
+                results.forEach(result => {
+                    const listItem = document.createElement("li");
+                    listItem.innerText = result.title;
+                    document.getElementById("movies").appendChild(listItem);
+                });
+            })();
+        </script>
+    </body>
+</html>
+netlify dev
+netlify env:set MONGODB_URI YOUR_URI_HERE
+netlify env:set MONGODB_DATABASE sample_mflix
+netlify env:set MONGODB_COLLECTION movies
+netlify deploy
