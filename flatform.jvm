@@ -1,0 +1,122 @@
+implementation "com.stripe:stripe-java:28.3.1"
+<dependency>
+  <groupId>com.stripe</groupId>
+  <artifactId>stripe-java</artifactId>
+  <version>28.3.1</version>
+</dependency>
+-keep class com.stripe.** { *; }
+import java.util.HashMap;
+import java.util.Map;
+
+import com.stripe.StripeClient;
+import com.stripe.exception.StripeException;
+import com.stripe.model.Customer;
+import com.stripe.net.RequestOptions;
+import com.stripe.param.CustomerCreateParams;
+
+public class StripeExample {
+
+    public static void main(String[] args) {
+        StripeClient client = new StripeClient("sk_test_...");
+        CustomerCreateParams params =
+            CustomerCreateParams
+                .builder()
+                .setDescription("Example description")
+                .setEmail("test@example.com")
+                .setPaymentMethod("pm_card_visa")  // obtained via Stripe.js
+                .build();
+
+        try {
+            Customer customer = client.customers().create(params);
+            System.out.println(customer);
+        } catch (StripeException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+RequestOptions requestOptions = RequestOptions.builder()
+    .setApiKey("sk_test_...")
+    .setIdempotencyKey("a1b2c3...")
+    .setStripeAccount("acct_...")
+    .build();
+
+client.customers().list(requestOptions);
+
+client.customers().retrieve("cus_123456789", requestOptions);
+StripeClient client = StripeClient.builder()
+        .setMaxNetworkRetries(2)
+        .build();
+RequestOptions options = RequestOptions.builder()
+    .setMaxNetworkRetries(2)
+    .build();
+client.customers().create(params, options);
+StripeClient client = StripeClient.builder()
+        .setConnectTimeout(30 * 1000); // in milliseconds
+        .setReadTimeout(80 * 1000);
+        .build();
+RequestOptions options = RequestOptions.builder()
+    .setConnectTimeout(30 * 1000) // in milliseconds
+    .setReadTimeout(80 * 1000)
+    .build();
+client.customers().create(params, options);
+CustomerCreateParams params =
+  CustomerCreateParams.builder()
+    .setEmail("jenny.rosen@example.com")
+    .putExtraParam("secret_feature_enabled", "true")
+    .putExtraParam("secret_parameter[primary]", "primary value")
+    .putExtraParam("secret_parameter[secondary]", "secondary value")
+    .build();
+
+client.customers().create(params);
+final Customer customer = client.customers().retrieve("cus_1234");
+Boolean featureEnabled =
+  customer.getRawJsonObject()
+    .getAsJsonPrimitive("secret_feature_enabled")
+    .getAsBoolean();
+String primaryValue =
+  customer.getRawJsonObject()
+    .getAsJsonObject("secret_parameter")
+    .getAsJsonPrimitive("primary")
+    .getAsString();
+String secondaryValue =
+  customer.getRawJsonObject()
+    .getAsJsonObject("secret_parameter")
+    .getAsJsonPrimitive("secondary")
+    .getAsString();
+Stripe.setAppInfo("MyAwesomePlugin", "1.2.34", "https://myawesomeplugin.info");
+Stripe.enableTelemetry = false;
+Stripe.addBetaVersion("feature_beta", "v3");
+// (Optional) Create a RawRequestOptions object, allowing you to set per-request
+// configuration options like additional headers.
+Map<String, String> stripeVersionHeader = new HashMap<>();
+stripeVersionHeader.put("Stripe-Version", "2024-09-30.acacia");
+RawRequestOptions options = RawRequestOptions.builder()
+        .setAdditionalHeaders(stripeVersionHeader)
+        .build();
+
+// Make the request using the StripeClient.rawRequest() method.
+StripeClient client = new StripeClient("sk_test_...");
+final StripeResponse response =
+        client.rawRequest(
+                ApiResource.RequestMethod.POST, "/v1/customers", "name=johndoe&email=johndoe@example.com", options);
+
+// (Optional) response.body() is a string. You can call
+// StripeClient.deserialize() to get a StripeObject
+// Pass ApiMode.V2 if the endpoint you are targeting starts with "/v2", else pass ApiMode.V1
+StripeObject object = client.deserialize(response.body(), ApiMode.V1);
+// or cast it if a corresponding response class exists in the SDK
+Customer customer = (Customer) client.deserialize(response.body(), ApiMode.V1);
+go get -u github.com/stripe/stripe-mock
+stripe-mock
+./gradlew check
+just test
+# or: ./gradlew test
+just test-one com.stripe.model.AccountTest
+just test-one com.stripe.functional.CustomerTest
+just test-one com.stripe.functional.CustomerTest.testCustomerCreate
+# or: ./gradlew test --tests com.stripe.model.AccountTest
+# or: ./gradlew test --tests com.stripe.functional.CustomerTest
+# or: ./gradlew test --tests com.stripe.functional.CustomerTest.testCustomerCreate
+just format
+# or: ./gradlew spotlessApply
