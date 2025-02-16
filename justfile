@@ -5,39 +5,31 @@ import? '../sdk-codegen/utils.just'
 _default:
     just --list --unsorted
 
-install *args:
-    bundle install {{ if is_dependency() == "true" {"--quiet"} else {""} }} {{ args }}
+# ⭐ run the whole test suite
+[no-exit-message]
+test *args:
+    ./gradlew test {{ args }}
 
-# ⭐ run all unit tests
-test: install
-    bundle exec rake test
+# run a single test
+test-one modelPath: (test "--tests" modelPath)
 
-# check linting / formatting status of files
-format-check *args: install
-    bundle exec rubocop {{ args }}
-alias lint-check := format-check
+# ⭐ format all files
+[no-exit-message]
+format:
+    ./gradlew spotlessApply
 
-# ⭐ check style & formatting for all files, fixing what we can
-lint: (format-check "--autocorrect")
-
-# NOTE: "-o /dev/null" is vital - rubocop has super noisy output and codegen will crash when formatting ruby if everything gets printed
-# so, we send all its output to the void
-# copy of `lint` with less output
-format: (format-check "-o /dev/null --autocorrect")
-
-update-certs: install
-    bundle exec rake update_certs
-
-# run sorbet to check type definitions
-typecheck: install
-    {{ if semver_matches(`ruby -e "puts RUBY_VERSION"`, ">=2.7") == "true" { \
-        "bundle exec srb tc" \
-    } else { \
-        "echo \"Ruby version < 2.7, skipping srb tc\"" \
-    } }}
+# check, but don't change, the formatting
+[no-exit-message]
+format-check:
+    ./gradlew spotlessCheck
 
 # called by tooling
 [private]
 update-version version:
     echo "{{ version }}" > VERSION
-    perl -pi -e 's|VERSION = "[.\-\w\d]+"|VERSION = "{{ version }}"|' lib/stripe/version.rb
+    perl -pi -e 's|badge/maven--central-v[.\d\-\w]+-blue|badge/maven--central-v{{ version }}-blue|' README.md
+    perl -pi -e 's|https:\/\/search\.maven\.org\/remotecontent\?filepath=com\/stripe\/stripe-java\/[.\d\-\w]+\/stripe-java-[.\d\-\w]+.jar|https://search.maven.org/remotecontent?filepath=com/stripe/stripe-java/{{ version }}/stripe-java-{{ version }}.jar|' README.md
+    perl -pi -e 's|implementation "com\.stripe:stripe-java:[.\d\-\w]+"|implementation "com.stripe:stripe-java:{{ version }}"|' README.md
+    perl -pi -e 's|<version>[.\d\-\w]+<\/version>|<version>{{ version }}</version>|' README.md
+    perl -pi -e 's|VERSION_NAME=[.\d\-\w]+|VERSION_NAME={{ version }}|' gradle.properties
+    perl -pi -e 's|public static final String VERSION = "[.\d\-\w]+";|public static final String VERSION = "{{ version }}";|' src/main/java/com/stripe/Stripe.java
